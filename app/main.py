@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -45,9 +44,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://ishwar-portfolio-one.vercel.app",
-        "https://ishwar-portfolio-8bhr-git-main-ishwar17.vercel.app",
     ],
+    # Is project ke saare Vercel URLs allow (production, git-branch, preview)
+    allow_origin_regex=r"https://ishwar-portfolio[a-z0-9-]*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
