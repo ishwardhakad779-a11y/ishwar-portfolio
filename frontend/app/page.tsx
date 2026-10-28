@@ -281,6 +281,9 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoVersion, setPhotoVersion] = useState(() => Date.now());
+  const [photoBroken, setPhotoBroken] = useState(false);
 
   async function loadAdminData() {
     try {
@@ -437,6 +440,34 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     finally { setBusy(false); }
   }
 
+  async function uploadPhoto() {
+    if (!photoFile) return setError("Pehle photo select karo.");
+    try {
+      setBusy(true); setError(""); setMessage("");
+      const formData = new FormData(); formData.append("file", photoFile);
+      const response = await fetch(`${ADMIN_API}/profile-photo`, { method: "POST", body: formData });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.detail || "Photo upload failed");
+      setPhotoFile(null); setPhotoBroken(false); setPhotoVersion(Date.now());
+      setMessage("Profile photo updated.");
+      const input = document.getElementById("inline-photo-upload") as HTMLInputElement | null;
+      if (input) input.value = "";
+    } catch (e) { setError(e instanceof Error ? e.message : "Photo upload failed."); }
+    finally { setBusy(false); }
+  }
+
+  async function deletePhoto() {
+    if (!window.confirm("Profile photo hatani hai?")) return;
+    try {
+      setBusy(true); setError("");
+      const response = await fetch(`${ADMIN_API}/profile-photo`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Photo delete failed");
+      setPhotoBroken(true); setPhotoVersion(Date.now());
+      setMessage("Profile photo removed.");
+    } catch (e) { setError(e instanceof Error ? e.message : "Photo delete failed."); }
+    finally { setBusy(false); }
+  }
+
   async function logout() {
     await fetch("/api/admin-logout", { method: "POST" }).catch(() => null);
     onClose();
@@ -458,6 +489,33 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
 
         {message && <div className="mb-4 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.06] px-4 py-3 text-sm text-emerald-300">{message}</div>}
         {error && <div className="mb-4 rounded-xl border border-red-400/20 bg-red-400/[0.06] px-4 py-3 text-sm text-red-300">{error}</div>}
+
+        <section className="mb-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5">
+          <p className="text-xs uppercase tracking-[0.2em] text-cyan-400">Profile photo</p>
+          <div className="mt-5 flex flex-wrap items-center gap-5">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-indigo-600 text-2xl font-black">
+              {photoBroken ? (
+                "ID"
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`${API}/profile-photo?v=${photoVersion}`}
+                  alt="Profile photo"
+                  className="h-full w-full object-cover"
+                  onError={() => setPhotoBroken(true)}
+                />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <label htmlFor="inline-photo-upload" className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-white/10 px-4 py-4 text-sm text-neutral-400"><Upload size={16}/>{photoFile ? photoFile.name : "Choose photo (JPG, PNG ya WEBP, max 3 MB)"}</label>
+              <input id="inline-photo-upload" type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e)=>setPhotoFile(e.target.files?.[0] || null)}/>
+              <div className="mt-3 flex gap-2">
+                <button onClick={uploadPhoto} disabled={busy || !photoFile} className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black disabled:opacity-40">{photoBroken ? "Upload Photo" : "Replace Photo"}</button>
+                {!photoBroken && <button onClick={deletePhoto} disabled={busy} className="rounded-xl border border-red-400/20 px-5 py-3 text-sm text-red-300 disabled:opacity-40">Remove</button>}
+              </div>
+            </div>
+          </div>
+        </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <section className="rounded-2xl border border-white/10 bg-white/[0.025] p-5">
@@ -1461,7 +1519,12 @@ export default function Home() {
 
       </section>
 
-      <ProfileSection />
+      <ProfileSection
+        name={profile.name}
+        headline={profile.headline}
+        bio={profile.bio}
+        availability={profile.availability}
+      />
 
       <AgentWorkflows />
 
