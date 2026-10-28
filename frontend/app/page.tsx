@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import AgentWorkflows from "./components/AgentWorkflows";
 import AskAI from "./components/AskAI";
+import ProfileSection from "./components/ProfileSection";
 import Hero3D from "./components/Hero3D";
 import LiveAgent from "./components/LiveAgent";
 
@@ -1459,6 +1460,8 @@ export default function Home() {
         )}
 
       </section>
+
+      <ProfileSection />
 
       <AgentWorkflows />
 
