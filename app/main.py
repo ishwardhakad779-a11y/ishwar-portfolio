@@ -51,8 +51,7 @@ app.mount(
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 # Ye POST routes public hain (visitor chatbot / JD match). Inka apna rate limit hai (app/ai.py).
-PUBLIC_POST_PATHS = {"/api/chat", "/api/jd-match"}
-
+PUBLIC_POST_PATHS = {"/api/chat", "/api/jd-match", "/api/agent-run"}
 
 @app.middleware("http")
 async def require_admin_key(request: Request, call_next):
