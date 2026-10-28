@@ -14,6 +14,8 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
+import AgentWorkflows from "./components/AgentWorkflows";
+import AskAI from "./components/AskAI";
 
 const API =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -1308,6 +1310,8 @@ export default function Home() {
 
       </section>
 
+      <AgentWorkflows />
+
       {/* =========================
           STACK
       ========================= */}
@@ -1509,6 +1513,8 @@ export default function Home() {
       )}
 
       {adminOpen && <InlineAdminPanel onClose={()=>setAdminOpen(false)} />}
+
+      {!adminOpen && <AskAI />}
 
       {/* =========================
           FOOTER

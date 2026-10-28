@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from .ai import router as ai_router
 from .database import Base, engine
 from .routes import router
 
@@ -49,12 +50,16 @@ app.mount(
 
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
+# Ye POST routes public hain (visitor chatbot / JD match). Inka apna rate limit hai (app/ai.py).
+PUBLIC_POST_PATHS = {"/api/chat", "/api/jd-match"}
+
 
 @app.middleware("http")
 async def require_admin_key(request: Request, call_next):
     if (
         request.method not in SAFE_METHODS
         and request.url.path.startswith("/api")
+        and request.url.path.rstrip("/") not in PUBLIC_POST_PATHS
     ):
         expected = os.getenv("ADMIN_API_KEY", "")
         provided = request.headers.get("x-admin-key", "")
@@ -98,6 +103,11 @@ app.add_middleware(
 
 app.include_router(
     router,
+    prefix="/api",
+)
+
+app.include_router(
+    ai_router,
     prefix="/api",
 )
 
