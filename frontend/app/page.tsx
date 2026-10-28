@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import AgentWorkflows from "./components/AgentWorkflows";
 import AskAI from "./components/AskAI";
+import Hero3D from "./components/Hero3D";
+import LiveAgent from "./components/LiveAgent";
 
 const API =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -78,6 +80,15 @@ type Resume = {
 /* =========================
    FALLBACK PROFILE
 ========================= */
+
+type JDMatch = {
+  match_percent: number;
+  summary: string;
+  matching_skills: string[];
+  missing_skills: string[];
+  relevant_projects: { title: string; reason: string }[];
+  pitch: string;
+};
 
 const fallbackProfile: Profile = {
   id: 0,
@@ -528,6 +539,7 @@ export default function Home() {
     useState<number | null>(null);
 
   const [adminOpen, setAdminOpen] = useState(false);
+  const [jdMatch, setJdMatch] = useState<JDMatch | null>(null);
   const [adminLoginOpen, setAdminLoginOpen] = useState(false);
   const [adminUsername, setAdminUsername] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
@@ -635,6 +647,21 @@ export default function Home() {
     loadPortfolio();
   }, []);
 
+  /* JD Match result aate hi portfolio us role ke hisaab se badal jata hai */
+  useEffect(() => {
+    function onMatch(event: Event) {
+      const detail = (event as CustomEvent<JDMatch>).detail;
+
+      if (detail) {
+        setJdMatch(detail);
+        setActiveCategory("All");
+      }
+    }
+
+    window.addEventListener("jd-match", onMatch);
+    return () => window.removeEventListener("jd-match", onMatch);
+  }, []);
+
   async function openAdminLogin() {
     setAdminError("");
     setAdminLoginOpen(true);
@@ -688,6 +715,64 @@ export default function Home() {
         project.category === activeCategory
     );
   }, [projects, activeCategory]);
+
+  /* =========================
+     JD MATCH: re-order + highlight
+  ========================= */
+
+  function norm(value: string) {
+    return value.toLowerCase().replace(/[^a-z0-9+#]/g, "");
+  }
+
+  function relevantIndex(title: string) {
+    if (!jdMatch) return -1;
+
+    const t = norm(title);
+    if (t.length < 3) return -1;
+
+    return jdMatch.relevant_projects.findIndex((p) => {
+      const r = norm(p.title);
+      return r.length >= 3 && (r === t || r.includes(t) || t.includes(r));
+    });
+  }
+
+  function skillMatched(item: string) {
+    if (!jdMatch) return false;
+
+    const n = norm(item);
+    if (n.length < 2) return false;
+
+    return jdMatch.matching_skills.some((skill) => {
+      const m = norm(skill);
+      if (m.length < 2) return false;
+
+      return (
+        m === n ||
+        (n.length >= 4 && m.includes(n)) ||
+        (m.length >= 4 && n.includes(m))
+      );
+    });
+  }
+
+  const shownProjects = useMemo(() => {
+    if (!jdMatch) return filteredProjects;
+
+    return [...filteredProjects].sort((a, b) => {
+      const ia = relevantIndex(a.title);
+      const ib = relevantIndex(b.title);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredProjects, jdMatch]);
+
+  const shownStack = useMemo(() => {
+    if (!jdMatch) return stack;
+
+    return [...stack].sort(
+      (a, b) => Number(skillMatched(b)) - Number(skillMatched(a))
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stack, jdMatch]);
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#050505] text-white">
@@ -910,15 +995,44 @@ export default function Home() {
       </nav>
 
       {/* =========================
+          JD MATCH BANNER
+      ========================= */}
+
+      {jdMatch && (
+        <div className="fixed left-0 right-0 top-16 z-40 border-b border-cyan-400/20 bg-[#06141a]/90 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-1 px-5 py-2.5 sm:px-8">
+            <span className="rounded-full bg-cyan-400/15 px-2.5 py-1 text-xs font-semibold text-cyan-300">
+              {jdMatch.match_percent}% match
+            </span>
+
+            <p className="min-w-0 flex-1 text-xs text-neutral-300">
+              Portfolio is role ke hisaab se re-arrange ho gaya: relevant projects
+              aur skills upar highlight hain.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setJdMatch(null)}
+              className="text-xs text-neutral-400 underline-offset-2 transition hover:text-white hover:underline"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* =========================
           HERO
       ========================= */}
 
       <section
         id="home"
-        className="mx-auto flex min-h-screen max-w-6xl items-center px-5 pb-20 pt-28 sm:px-8"
+        className="relative mx-auto flex min-h-screen max-w-6xl items-center px-5 pb-20 pt-28 sm:px-8"
       >
 
-        <div className="w-full">
+        <Hero3D />
+
+        <div className="relative z-10 w-full">
 
           <motion.div
             initial={{
@@ -1025,6 +1139,25 @@ export default function Home() {
               Contact me
             </a>
 
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.34 }}
+            className="mt-4"
+          >
+            <button
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent("open-ask-ai", { detail: { tab: "jd" } })
+                )
+              }
+              className="rounded-full border border-cyan-400/30 bg-cyan-400/[0.06] px-5 py-3 text-sm text-cyan-200 transition hover:border-cyan-400/60 hover:bg-cyan-400/10"
+            >
+              Paste a job description → see how I fit
+            </button>
           </motion.div>
 
           {/* STATS */}
@@ -1158,7 +1291,7 @@ export default function Home() {
 
         <div className="grid gap-5 md:grid-cols-2">
 
-          {filteredProjects.map(
+          {shownProjects.map(
             (project, index) => {
 
               const tags =
@@ -1189,7 +1322,11 @@ export default function Home() {
                     delay:
                       index * 0.05,
                   }}
-                  className="group overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] transition hover:border-white/[0.16]"
+                  className={`group overflow-hidden rounded-2xl border bg-white/[0.025] transition hover:border-white/[0.16] ${
+                    relevantIndex(project.title) >= 0
+                      ? "border-cyan-400/40 shadow-[0_0_30px_rgba(34,211,238,0.08)]"
+                      : "border-white/[0.08]"
+                  }`}
                 >
 
                   {/* PROJECT IMAGE */}
@@ -1209,6 +1346,19 @@ export default function Home() {
                   )}
 
                   <div className="p-6 sm:p-7">
+
+                    {jdMatch && relevantIndex(project.title) >= 0 && (
+                      <div className="mb-4 rounded-lg border border-cyan-400/20 bg-cyan-400/[0.06] px-3 py-2 text-[11px] leading-5 text-cyan-200">
+                        <span className="font-semibold">
+                          Relevant for this role:
+                        </span>{" "}
+                        {
+                          jdMatch.relevant_projects[
+                            relevantIndex(project.title)
+                          ].reason
+                        }
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between gap-4">
 
@@ -1300,7 +1450,7 @@ export default function Home() {
 
         </div>
 
-        {filteredProjects.length ===
+        {shownProjects.length ===
           0 && (
           <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center text-sm text-neutral-600">
             No projects found in this
@@ -1311,6 +1461,8 @@ export default function Home() {
       </section>
 
       <AgentWorkflows />
+
+      <LiveAgent />
 
       {/* =========================
           STACK
@@ -1344,7 +1496,7 @@ export default function Home() {
 
           <div className="mt-10 flex flex-wrap gap-3">
 
-            {stack.map(
+            {shownStack.map(
               (item, index) => (
                 <motion.div
                   key={`${item}-${index}`}
@@ -1364,7 +1516,11 @@ export default function Home() {
                     delay:
                       index * 0.025,
                   }}
-                  className="rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-3 text-sm text-neutral-300 transition hover:border-cyan-400/20 hover:bg-white/[0.05]"
+                  className={`rounded-xl border px-4 py-3 text-sm transition ${
+                    skillMatched(item)
+                      ? "border-cyan-400/50 bg-cyan-400/10 text-white"
+                      : "border-white/[0.08] bg-white/[0.025] text-neutral-300 hover:border-cyan-400/20 hover:bg-white/[0.05]"
+                  }`}
                 >
                   {item}
                 </motion.div>

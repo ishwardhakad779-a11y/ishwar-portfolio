@@ -106,6 +106,20 @@ export default function AskAI() {
   const [jdError, setJdError] = useState("");
   const [result, setResult] = useState<JDResult | null>(null);
 
+  /* Page ke baaki hisse (jaise hero ka "Paste a job description" button) panel khol sakte hain */
+  useEffect(() => {
+    function onOpen(event: Event) {
+      const requestedTab = (event as CustomEvent<{ tab?: "ask" | "jd" }>).detail
+        ?.tab;
+
+      setOpen(true);
+      if (requestedTab) setTab(requestedTab);
+    }
+
+    window.addEventListener("open-ask-ai", onOpen);
+    return () => window.removeEventListener("open-ask-ai", onOpen);
+  }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatLoading, open, tab]);
@@ -181,6 +195,9 @@ export default function AskAI() {
       );
 
       setResult(data);
+
+      // Poora portfolio is role ke hisaab se re-arrange ho jaye
+      window.dispatchEvent(new CustomEvent("jd-match", { detail: data }));
     } catch (error) {
       setJdError(
         error instanceof Error ? error.message : "Kuch gadbad ho gayi."
@@ -383,6 +400,23 @@ export default function AskAI() {
 
               {result && (
                 <div className="mt-5 space-y-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      setTimeout(
+                        () =>
+                          document
+                            .getElementById("work")
+                            ?.scrollIntoView({ behavior: "smooth" }),
+                        150
+                      );
+                    }}
+                    className="w-full rounded-xl border border-cyan-400/40 bg-cyan-400/10 py-2.5 text-sm font-medium text-cyan-200 transition hover:bg-cyan-400/20"
+                  >
+                    See tailored portfolio ↓
+                  </button>
+
                   <div>
                     <div className="flex items-end justify-between">
                       <p className="text-3xl font-semibold">
