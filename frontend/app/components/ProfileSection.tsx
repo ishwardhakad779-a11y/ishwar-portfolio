@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, MapPin } from "lucide-react";
+import { Download, Mail, MapPin } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 
 const GITHUB_URL = "https://github.com/ishwardhakad779-a11y";
@@ -26,6 +26,7 @@ type Props = {
   headline?: string;
   bio?: string;
   availability?: string;
+  resumeUrl?: string;
 };
 
 export default function ProfileSection({
@@ -33,6 +34,7 @@ export default function ProfileSection({
   headline,
   bio,
   availability,
+  resumeUrl,
 }: Props) {
   const [photoFailed, setPhotoFailed] = useState(false);
 
@@ -98,6 +100,18 @@ export default function ProfileSection({
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
+            {resumeUrl && (
+              <a
+                href={resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-neutral-200"
+              >
+                <Download size={15} />
+                Resume
+              </a>
+            )}
+
             {links.map(({ label, href, Icon, external }) => (
               <a
                 key={label}

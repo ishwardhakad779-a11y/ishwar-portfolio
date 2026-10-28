@@ -1524,6 +1524,7 @@ export default function Home() {
         headline={profile.headline}
         bio={profile.bio}
         availability={profile.availability}
+        resumeUrl={resumeUrl !== "/resume.pdf" ? resumeUrl : undefined}
       />
 
       <AgentWorkflows />
