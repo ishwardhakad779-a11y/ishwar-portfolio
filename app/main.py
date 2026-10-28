@@ -1,5 +1,9 @@
-from fastapi import FastAPI
+import hmac
+import os
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .database import Base, engine
@@ -33,6 +37,41 @@ app.mount(
     StaticFiles(directory="uploads"),
     name="uploads",
 )
+
+
+# =========================
+# ADMIN AUTH
+# =========================
+# Public GET routes khule rahenge. /api ke under koi bhi write request
+# (POST / PUT / PATCH / DELETE) tabhi chalegi jab X-Admin-Key sahi ho.
+# Ye key sirf Next.js server (Vercel) ke paas hoti hai, browser ke paas nahi.
+# NOTE: ye CORS se pehle add hona zaroori hai, taaki CORS iske upar rahe.
+
+SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+
+
+@app.middleware("http")
+async def require_admin_key(request: Request, call_next):
+    if (
+        request.method not in SAFE_METHODS
+        and request.url.path.startswith("/api")
+    ):
+        expected = os.getenv("ADMIN_API_KEY", "")
+        provided = request.headers.get("x-admin-key", "")
+
+        if not expected:
+            return JSONResponse(
+                {"detail": "Admin API key is not configured on the server."},
+                status_code=503,
+            )
+
+        if not hmac.compare_digest(provided.encode(), expected.encode()):
+            return JSONResponse(
+                {"detail": "Unauthorized"},
+                status_code=401,
+            )
+
+    return await call_next(request)
 
 
 # =========================

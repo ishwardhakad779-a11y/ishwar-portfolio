@@ -20,6 +20,10 @@ const API =
   "http://127.0.0.1:8000/api";
 
 const BACKEND = API.replace(/\/api$/, "");
+
+// Admin write calls (POST/PUT/DELETE) Next.js proxy se jaate hain,
+// jo login cookie check karke backend ko secret key ke saath call karta hai.
+const ADMIN_API = "/api/admin-proxy";
 /* =========================
    FIXED PERSONAL LINKS
 ========================= */
@@ -307,7 +311,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     }
     try {
       setBusy(true); setError(""); setMessage("");
-      const url = editingProjectId ? `${API}/projects/${editingProjectId}` : `${API}/projects`;
+      const url = editingProjectId ? `${ADMIN_API}/projects/${editingProjectId}` : `${ADMIN_API}/projects`;
       const response = await fetch(url, {
         method: editingProjectId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -318,7 +322,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
       if (selectedImage) {
         const formData = new FormData();
         formData.append("image", selectedImage);
-        const imageResponse = await fetch(`${API}/projects/${data.id}/image`, { method: "POST", body: formData });
+        const imageResponse = await fetch(`${ADMIN_API}/projects/${data.id}/image`, { method: "POST", body: formData });
         if (!imageResponse.ok) throw new Error("Project image upload failed");
       }
       setProjectForm(emptyAdminProject); setEditingProjectId(null); setSelectedImage(null);
@@ -339,7 +343,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     if (!window.confirm("Ye project delete karna hai?")) return;
     try {
       setBusy(true);
-      const response = await fetch(`${API}/projects/${id}`, { method: "DELETE" });
+      const response = await fetch(`${ADMIN_API}/projects/${id}`, { method: "DELETE" });
       if (!response.ok) throw new Error("Delete failed");
       setMessage("Project deleted successfully.");
       await loadAdminData();
@@ -352,7 +356,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     if (!stackName.trim()) return setError("Technology name required hai.");
     try {
       setBusy(true); setError("");
-      const response = await fetch(editingStackId ? `${API}/stack/${editingStackId}` : `${API}/stack`, {
+      const response = await fetch(editingStackId ? `${ADMIN_API}/stack/${editingStackId}` : `${ADMIN_API}/stack`, {
         method: editingStackId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: stackName.trim(), display_order: Number(stackOrder) }),
@@ -370,7 +374,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     if (!window.confirm("Ye technology delete karni hai?")) return;
     try {
       setBusy(true);
-      const response = await fetch(`${API}/stack/${id}`, { method: "DELETE" });
+      const response = await fetch(`${ADMIN_API}/stack/${id}`, { method: "DELETE" });
       if (!response.ok) throw new Error("Stack delete failed");
       await loadAdminData(); setMessage("Technology deleted.");
     } catch (e) { setError(e instanceof Error ? e.message : "Stack delete failed."); }
@@ -381,7 +385,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     try {
       setBusy(true); setError("");
-      const response = await fetch(`${API}/profile`, {
+      const response = await fetch(`${ADMIN_API}/profile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(adminProfile),
@@ -398,7 +402,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     try {
       setBusy(true); setError("");
       const formData = new FormData(); formData.append("file", selectedResume);
-      const response = await fetch(`${API}/resume/upload`, { method: "POST", body: formData });
+      const response = await fetch(`${ADMIN_API}/resume/upload`, { method: "POST", body: formData });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.detail || "Resume upload failed");
       setResume(data); setSelectedResume(null); setMessage("Resume successfully updated.");
@@ -412,7 +416,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     if (!window.confirm("Current resume delete karna hai?")) return;
     try {
       setBusy(true);
-      const response = await fetch(`${API}/resume`, { method: "DELETE" });
+      const response = await fetch(`${ADMIN_API}/resume`, { method: "DELETE" });
       if (!response.ok) throw new Error("Resume delete failed");
       setResume(null); setMessage("Resume deleted.");
     } catch (e) { setError(e instanceof Error ? e.message : "Resume delete failed."); }
