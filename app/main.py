@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from .agent_demo import router as agent_router
 from .ai import router as ai_router
 from .database import Base, engine
 from .routes import router
@@ -52,6 +53,7 @@ SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 # Ye POST routes public hain (visitor chatbot / JD match). Inka apna rate limit hai (app/ai.py).
 PUBLIC_POST_PATHS = {"/api/chat", "/api/jd-match", "/api/agent-run"}
+
 
 @app.middleware("http")
 async def require_admin_key(request: Request, call_next):
@@ -114,6 +116,12 @@ app.include_router(
 # =========================
 # ROOT
 # =========================
+
+app.include_router(
+    agent_router,
+    prefix="/api",
+)
+
 
 @app.get("/")
 def root():
