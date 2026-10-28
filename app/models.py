@@ -1,6 +1,14 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Integer,
+    LargeBinary,
+    String,
+    Text,
+)
 
 from .database import Base
 
@@ -55,3 +63,16 @@ class Resume(Base):
     file_url = Column(String(500), default="")
     file_name = Column(String(200), default="")
     updated_at = Column(DateTime, default=datetime.utcnow)
+
+
+class StoredFile(Base):
+    """Uploaded images / resume PDF database mein save hote hain,
+    taaki Render restart pe delete na ho."""
+
+    __tablename__ = "stored_files"
+
+    id = Column(String(32), primary_key=True, index=True)
+    filename = Column(String(300), default="")
+    content_type = Column(String(100), default="")
+    data = Column(LargeBinary, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)

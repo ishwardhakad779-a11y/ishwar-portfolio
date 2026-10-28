@@ -2,11 +2,11 @@ from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
 from sqlalchemy.orm import Session
 
 from .database import get_db
-from .models import Project, Profile, Resume, Stack
+from .models import Project, Profile, Resume, Stack, StoredFile
 from .schemas import (
     ProfileCreate,
     ProfileResponse,
@@ -25,11 +25,72 @@ router = APIRouter()
 # UPLOAD DIRECTORIES
 # ============================================================
 
-PROJECT_UPLOAD_DIR = Path("uploads/projects")
-RESUME_UPLOAD_DIR = Path("uploads/resume")
+# main.py ka /uploads mount chalne ke liye folder zaroori hai.
+# Nayi files ab database mein save hoti hain (neeche helpers dekho).
+Path("uploads").mkdir(parents=True, exist_ok=True)
 
-PROJECT_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-RESUME_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# ============================================================
+# FILE STORAGE (database mein)
+# ============================================================
+
+FILE_URL_PREFIX = "/api/files/"
+
+
+def save_file(db: Session, content: bytes, content_type: str, filename: str) -> str:
+    file_id = uuid4().hex
+
+    db.add(
+        StoredFile(
+            id=file_id,
+            filename=filename or "",
+            content_type=content_type,
+            data=content,
+        )
+    )
+
+    return f"{FILE_URL_PREFIX}{file_id}"
+
+
+def delete_file(db: Session, url: str | None) -> None:
+    if not url or not url.startswith(FILE_URL_PREFIX):
+        return
+
+    stored = (
+        db.query(StoredFile)
+        .filter(StoredFile.id == url[len(FILE_URL_PREFIX):])
+        .first()
+    )
+
+    if stored:
+        db.delete(stored)
+
+
+@router.get("/files/{file_id}")
+def get_file(file_id: str, db: Session = Depends(get_db)):
+    stored = (
+        db.query(StoredFile)
+        .filter(StoredFile.id == file_id)
+        .first()
+    )
+
+    if not stored:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    headers = {"Cache-Control": "public, max-age=31536000, immutable"}
+
+    if stored.content_type == "application/pdf":
+        safe_name = "".join(
+            c for c in (stored.filename or "Resume.pdf")
+            if c.isascii() and c not in '"\\\r\n'
+        ) or "Resume.pdf"
+        headers["Content-Disposition"] = f'inline; filename="{safe_name}"'
+
+    return Response(
+        content=stored.data,
+        media_type=stored.content_type,
+        headers=headers,
+    )
 
 
 # ============================================================
@@ -132,13 +193,7 @@ def delete_project(
             detail="Project not found",
         )
 
-    # Delete project image from disk
-    if project.image_url:
-        filename = Path(project.image_url).name
-        file_path = PROJECT_UPLOAD_DIR / filename
-
-        if file_path.exists():
-            file_path.unlink()
+    delete_file(db, project.image_url)
 
     db.delete(project)
     db.commit()
@@ -193,22 +248,14 @@ async def upload_project_image(
         )
 
     # Delete old image when replacing
-    if project.image_url:
-        old_filename = Path(project.image_url).name
-        old_file = PROJECT_UPLOAD_DIR / old_filename
+    delete_file(db, project.image_url)
 
-        if old_file.exists():
-            old_file.unlink()
-
-    extension = allowed_types[image.content_type]
-    filename = f"{uuid4().hex}{extension}"
-
-    file_path = PROJECT_UPLOAD_DIR / filename
-
-    with open(file_path, "wb") as buffer:
-        buffer.write(content)
-
-    project.image_url = f"/uploads/projects/{filename}"
+    project.image_url = save_file(
+        db,
+        content,
+        image.content_type,
+        image.filename or "image",
+    )
 
     db.commit()
     db.refresh(project)
@@ -237,12 +284,7 @@ def delete_project_image(
             detail="Project not found",
         )
 
-    if project.image_url:
-        filename = Path(project.image_url).name
-        file_path = PROJECT_UPLOAD_DIR / filename
-
-        if file_path.exists():
-            file_path.unlink()
+    delete_file(db, project.image_url)
 
     project.image_url = ""
 
@@ -473,41 +515,28 @@ async def upload_resume(
     # Delete old physical file
     # --------------------------------------------------------
 
-    if existing_resume and existing_resume.file_url:
-        old_filename = Path(
-            existing_resume.file_url
-        ).name
-
-        old_file = (
-            RESUME_UPLOAD_DIR / old_filename
-        )
-
-        if old_file.exists():
-            old_file.unlink()
+    if existing_resume:
+        delete_file(db, existing_resume.file_url)
 
     # --------------------------------------------------------
     # Create unique filename
     # --------------------------------------------------------
 
-    filename = f"{uuid4().hex}.pdf"
-
-    file_path = (
-        RESUME_UPLOAD_DIR / filename
-    )
-
-    # --------------------------------------------------------
-    # Save PDF
-    # --------------------------------------------------------
-
-    with open(file_path, "wb") as buffer:
-        buffer.write(content)
-
-    file_url = f"/uploads/resume/{filename}"
-
     original_filename = (
         file.filename
         if file.filename
         else "Resume.pdf"
+    )
+
+    # --------------------------------------------------------
+    # Save PDF (database mein)
+    # --------------------------------------------------------
+
+    file_url = save_file(
+        db,
+        content,
+        "application/pdf",
+        original_filename,
     )
 
     # --------------------------------------------------------
@@ -569,17 +598,7 @@ def delete_resume(
     # Delete physical PDF
     # --------------------------------------------------------
 
-    if resume.file_url:
-        filename = Path(
-            resume.file_url
-        ).name
-
-        file_path = (
-            RESUME_UPLOAD_DIR / filename
-        )
-
-        if file_path.exists():
-            file_path.unlink()
+    delete_file(db, resume.file_url)
 
     # --------------------------------------------------------
     # Delete database record
