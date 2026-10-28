@@ -1070,13 +1070,13 @@ export default function Home() {
               duration: 0.8,
               delay: 0.08,
             }}
-            className="max-w-4xl text-[38px] font-semibold leading-[1] tracking-[-0.045em] text-white sm:text-[46px] md:text-[52px] lg:text-[58px]"
+            className="max-w-4xl text-[44px] font-semibold leading-[0.98] tracking-[-0.05em] text-white sm:text-[58px] md:text-[70px] lg:text-[82px]"
           >
             <span className="block">
               Building
             </span>
 
-            <span className="block text-neutral-300">
+            <span className="gradient-text block">
               intelligent systems.
             </span>
           </motion.h1>
@@ -1322,7 +1322,7 @@ export default function Home() {
                     delay:
                       index * 0.05,
                   }}
-                  className={`group overflow-hidden rounded-2xl border bg-white/[0.025] transition hover:border-white/[0.16] ${
+                  className={`spotlight group overflow-hidden rounded-2xl border bg-white/[0.025] transition hover:border-white/[0.16] ${
                     relevantIndex(project.title) >= 0
                       ? "border-cyan-400/40 shadow-[0_0_30px_rgba(34,211,238,0.08)]"
                       : "border-white/[0.08]"

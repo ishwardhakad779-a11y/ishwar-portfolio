@@ -19,8 +19,17 @@ body {
   min-height: 100vh;
   background: #050505;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI",
+    Roboto, Arial, sans-serif;
   overflow-x: hidden;
+}
+
+/* Headings ke liye alag display font */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), var(--font-geist-sans), system-ui,
+    sans-serif;
 }
 
 ::selection {
@@ -52,6 +61,81 @@ a {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* =========================
+   GRAIN TEXTURE
+   Flat black ko premium feel deta hai (bahut halka, click nahi rokta)
+========================= */
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>");
+}
+
+/* =========================
+   GRADIENT TEXT (hero heading)
+========================= */
+
+.gradient-text {
+  background-image: linear-gradient(
+    90deg,
+    #67e8f9 0%,
+    #a78bfa 50%,
+    #67e8f9 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: gradient-shift 8s linear infinite;
+}
+
+@keyframes gradient-shift {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* =========================
+   CARD SPOTLIGHT
+   Mouse card ke upar ho toh glow mouse ke saath chalti hai
+   (--mx / --my CursorGlow.tsx set karta hai)
+========================= */
+
+.spotlight {
+  position: relative;
+}
+
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    380px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(34, 211, 238, 0.13),
+    transparent 45%
+  );
+}
+
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-text {
+    animation: none;
+  }
 }
 
 @media (max-width: 640px) {

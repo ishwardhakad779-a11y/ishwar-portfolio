@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Loader2, Send, Sparkles, X } from "lucide-react";
+import SkillRadar from "./SkillRadar";
 
 const API =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
@@ -386,6 +387,11 @@ export default function AskAI() {
                 </button>
               </form>
 
+              <p className="mt-2 text-[11px] leading-4 text-neutral-600">
+                Note: is check ki ek chhoti notification Ishwar ko mil sakti hai
+                (JD ka sirf pehla chhota hissa, koi personal detail nahi).
+              </p>
+
               {jdSlow && (
                 <p className="mt-3 text-xs text-neutral-500">
                   Server jaag raha hai, 30-50 second lag sakte hain...
@@ -434,6 +440,11 @@ export default function AskAI() {
                       {result.summary}
                     </p>
                   </div>
+
+                  <SkillRadar
+                    matching={result.matching_skills}
+                    missing={result.missing_skills}
+                  />
 
                   {result.matching_skills.length > 0 && (
                     <div>
