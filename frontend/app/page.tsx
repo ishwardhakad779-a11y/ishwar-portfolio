@@ -19,6 +19,8 @@ import AskAI from "./components/AskAI";
 import ProfileSection from "./components/ProfileSection";
 import Hero3D from "./components/Hero3D";
 import LiveAgent from "./components/LiveAgent";
+import IncidentSimulator from "./components/IncidentSimulator";
+import { CountUp, MagneticEffect, ScrambleText } from "./components/MicroInteractions";
 
 const API =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -1180,6 +1182,7 @@ export default function Home() {
 
             <a
               href="#work"
+              data-magnetic
               className="group flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black transition hover:bg-neutral-200"
             >
               View my work
@@ -1192,6 +1195,7 @@ export default function Home() {
 
             <a
               href={`mailto:${EMAIL}`}
+              data-magnetic
               className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 text-sm text-neutral-300 transition hover:border-white/20 hover:bg-white/[0.06]"
             >
               <Mail size={16} />
@@ -1213,6 +1217,7 @@ export default function Home() {
                   new CustomEvent("open-ask-ai", { detail: { tab: "jd" } })
                 )
               }
+              data-magnetic
               className="rounded-full border border-cyan-400/30 bg-cyan-400/[0.06] px-5 py-3 text-sm text-cyan-200 transition hover:border-cyan-400/60 hover:bg-cyan-400/10"
             >
               Paste a job description → see how I fit
@@ -1237,11 +1242,7 @@ export default function Home() {
 
             <div>
               <p className="text-2xl font-semibold">
-                {String(projects.length).padStart(
-                  2,
-                  "0"
-                )}
-                +
+                <CountUp value={projects.length} pad={2} suffix="+" />
               </p>
 
               <p className="mt-1 text-xs text-neutral-600">
@@ -1303,7 +1304,7 @@ export default function Home() {
             </p>
 
             <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Projects that solve problems.
+              <ScrambleText text="Projects that solve problems." />
             </h2>
 
             <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-500">
@@ -1531,6 +1532,8 @@ export default function Home() {
 
       <LiveAgent />
 
+      <IncidentSimulator />
+
       {/* =========================
           STACK
       ========================= */}
@@ -1549,7 +1552,7 @@ export default function Home() {
             </p>
 
             <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Tools I build with.
+              <ScrambleText text="Tools I build with." />
             </h2>
 
             <p className="mt-4 text-sm leading-7 text-neutral-500">
@@ -1618,7 +1621,7 @@ export default function Home() {
             </p>
 
             <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Building with curiosity.
+              <ScrambleText text="Building with curiosity." />
             </h2>
 
           </div>
@@ -1691,8 +1694,7 @@ export default function Home() {
               </p>
 
               <h2 className="mx-auto mt-4 max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
-                Have an idea worth
-                building?
+                <ScrambleText text="Have an idea worth building?" />
               </h2>
 
               <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-neutral-500">
@@ -1704,6 +1706,7 @@ export default function Home() {
 
               <a
                 href={`mailto:${EMAIL}`}
+                data-magnetic
                 className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-black transition hover:bg-neutral-200"
               >
                 <Mail size={16} />
@@ -1738,6 +1741,8 @@ export default function Home() {
       {adminOpen && <InlineAdminPanel onClose={()=>setAdminOpen(false)} />}
 
       {!adminOpen && <AskAI />}
+
+      <MagneticEffect />
 
       {/* =========================
           FOOTER

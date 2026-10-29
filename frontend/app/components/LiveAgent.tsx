@@ -1,5 +1,7 @@
 "use client";
 
+import { ScrambleText } from "./MicroInteractions";
+
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Loader2, Play } from "lucide-react";
 
@@ -248,7 +250,7 @@ export default function LiveAgent() {
       </p>
 
       <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-        Watch an agent think.
+        <ScrambleText text="Watch an agent think." />
       </h2>
 
       <p className="mt-4 max-w-2xl text-base leading-8 text-neutral-400">

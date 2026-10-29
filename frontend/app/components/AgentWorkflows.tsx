@@ -1,5 +1,7 @@
 "use client";
 
+import { ScrambleText } from "./MicroInteractions";
+
 import { useEffect, useState } from "react";
 
 /* =========================
@@ -165,7 +167,7 @@ export default function AgentWorkflows() {
       </p>
 
       <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-        How my agents work.
+        <ScrambleText text="How my agents work." />
       </h2>
 
       <p className="mt-4 max-w-2xl text-base leading-8 text-neutral-400">
