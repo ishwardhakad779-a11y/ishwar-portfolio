@@ -12,11 +12,17 @@ import hashlib
 import re
 from xml.sax.saxutils import escape
 
+from .cover_art import build_art, pick_theme
+
 # Auto-generated covers isi filename se pehchane jaate hain
 # (taaki upload ki hui image ko galti se na hata diya jaye)
 AUTO_COVER_NAME = "auto-cover.svg"
 
 VARIANT_RE = re.compile(rb"<!--variant:(\d+)-->")
+
+# Illustration wale covers (v2) is marker se pehchane jaate hain. Marker na ho toh
+# purana text-only cover hai, jise startup pe upgrade kar diya jaata hai.
+COVER_VERSION_MARK = b"<!--cover:v2-->"
 
 # (gradient start, gradient end, accent)
 PALETTES = [
@@ -120,10 +126,11 @@ def build_cover_svg(
     pattern_kind = variant % 3
 
     # Title
+    # Right side illustration ke liye jagah chhodni hai (x = 745 se)
     if len(title) <= 30:
-        size, max_chars = 76, 20
+        size, max_chars = 62, 16
     else:
-        size, max_chars = 58, 27
+        size, max_chars = 50, 21
 
     lines = _wrap(title, max_chars)
     line_height = int(size * 1.16)
@@ -136,6 +143,7 @@ def build_cover_svg(
         f'viewBox="0 0 {WIDTH} {HEIGHT}">'
     )
     parts.append(f"<!--variant:{variant}-->")
+    parts.append(COVER_VERSION_MARK.decode())
     parts.append(
         "<defs>"
         '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">'
@@ -150,6 +158,11 @@ def build_cover_svg(
     parts.append(f'<rect width="{WIDTH}" height="{HEIGHT}" fill="url(#bg)"/>')
     parts.append(f'<rect width="{WIDTH}" height="{HEIGHT}" fill="url(#glow)"/>')
     parts.append(_pattern(pattern_kind, accent))
+
+    # Illustration (title / category / tags se matching theme)
+    theme = pick_theme(title, category, tags)
+    parts.append(f"<!--theme:{theme}-->")
+    parts.append(f'<g transform="translate(745 112)">{build_art(theme, accent, c1)}</g>')
 
     # Category pill
     if category:

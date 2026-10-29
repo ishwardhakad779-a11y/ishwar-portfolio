@@ -14,8 +14,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from .cover_svg import AUTO_COVER_NAME, build_cover_svg, read_variant
-from .database import get_db
+from .cover_svg import (
+    AUTO_COVER_NAME,
+    COVER_VERSION_MARK,
+    build_cover_svg,
+    read_variant,
+)
+from .database import SessionLocal, get_db
 from .models import Project, StoredFile
 from .routes import FILE_URL_PREFIX, delete_file, save_file
 
@@ -104,3 +109,39 @@ def fill_missing_covers(db: Session = Depends(get_db)):
     db.commit()
 
     return {"created": len(projects)}
+
+
+def upgrade_auto_covers() -> int:
+    """Startup pe chalta hai: purane text-only auto covers ko naye illustration wale
+    covers se badal deta hai. Variant (rang) wahi rehta hai. Upload ki hui images ko
+    nahi chhuta, aur dobara chalane pe kuch nahi badalta (marker check)."""
+    db = SessionLocal()
+
+    try:
+        upgraded = 0
+
+        for project in db.query(Project).all():
+            stored = _stored(db, project.image_url)
+
+            if not _is_auto_cover(stored):
+                continue
+
+            if COVER_VERSION_MARK in stored.data[:600]:
+                continue
+
+            variant = read_variant(stored.data) or 0
+            _attach_cover(db, project, variant)
+            upgraded += 1
+
+        db.commit()
+
+        if upgraded:
+            print(f"[covers] upgraded {upgraded} auto cover(s)", flush=True)
+
+        return upgraded
+    except Exception as error:  # noqa: BLE001
+        db.rollback()
+        print(f"[covers] upgrade skipped: {error}", flush=True)
+        return 0
+    finally:
+        db.close()

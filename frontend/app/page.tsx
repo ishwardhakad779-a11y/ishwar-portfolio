@@ -1454,7 +1454,7 @@ export default function Home() {
                       <img
                         src={image}
                         alt={project.title}
-                        className="h-56 w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+                        className="aspect-video w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                       />
 
                       <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/50 to-transparent" />

@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from .agent_demo import router as agent_router
 from .ai import router as ai_router
 from .project_cover import router as cover_router
+from .project_cover import upgrade_auto_covers
 from .demo_status import router as status_router
 from .profile_photo import router as photo_router
 from .database import Base, engine
@@ -20,6 +21,9 @@ from .routes import router
 # =========================
 
 Base.metadata.create_all(bind=engine)
+
+# Purane text-only covers ko illustration wale covers me upgrade karo (ek baar)
+upgrade_auto_covers()
 
 
 # =========================
