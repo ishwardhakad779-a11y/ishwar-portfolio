@@ -361,6 +361,55 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     setSelectedImage(null);
   }
 
+  async function regenerateCover(id: number, replaceUpload = false) {
+    let needsConfirm = "";
+
+    try {
+      setBusy(true); setError(""); setMessage("");
+      const response = await fetch(`${ADMIN_API}/projects/${id}/cover`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ replace_upload: replaceUpload }),
+      });
+      const data = await response.json().catch(() => null);
+
+      if (response.status === 409) {
+        needsConfirm = data?.detail || "Is project me upload ki hui image lagi hai.";
+      } else {
+        if (!response.ok) throw new Error(data?.detail || "Cover generate nahi hua.");
+        setMessage("Naya cover lag gaya.");
+        await loadAdminData();
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Cover generate nahi hua.");
+    } finally {
+      setBusy(false);
+    }
+
+    if (needsConfirm && window.confirm(`${needsConfirm}\n\nAuto cover se badalna hai?`)) {
+      await regenerateCover(id, true);
+    }
+  }
+
+  async function fillCovers() {
+    try {
+      setBusy(true); setError(""); setMessage("");
+      const response = await fetch(`${ADMIN_API}/projects/covers/fill`, { method: "POST" });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.detail || "Covers generate nahi hue.");
+      setMessage(
+        data?.created
+          ? `${data.created} projects ko auto cover mil gaya.`
+          : "Sabhi projects me image pehle se hai."
+      );
+      await loadAdminData();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Covers generate nahi hue.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function deleteProject(id: number) {
     if (!window.confirm("Ye project delete karna hai?")) return;
     try {
@@ -546,7 +595,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
         </div>
 
         <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs uppercase tracking-[0.2em] text-cyan-400">Projects</p><h3 className="mt-2 text-xl font-semibold">{editingProjectId ? "Edit Project" : "Add Project"}</h3></div><span className="text-xs text-neutral-600">{projects.length} projects</span></div>
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs uppercase tracking-[0.2em] text-cyan-400">Projects</p><h3 className="mt-2 text-xl font-semibold">{editingProjectId ? "Edit Project" : "Add Project"}</h3></div><span className="text-xs text-neutral-600">{projects.length} projects</span><button type="button" onClick={fillCovers} disabled={busy} className="rounded-lg border border-cyan-400/30 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40">Auto cover: jin me image nahi</button></div>
           <form onSubmit={saveProject} className="grid gap-4 lg:grid-cols-2">
             <input name="title" value={projectForm.title} onChange={handleProjectChange} placeholder="Project title" className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none"/>
             <select name="category" value={projectForm.category} onChange={handleProjectChange} className="rounded-xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm outline-none">{categories.slice(1).map(c=><option key={c}>{c}</option>)}</select>
@@ -560,7 +609,12 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
             <div className="flex gap-2 lg:justify-end"><button disabled={busy} className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black">{editingProjectId ? "Update Project" : "Add Project"}</button>{editingProjectId && <button type="button" onClick={()=>{setEditingProjectId(null);setProjectForm(emptyAdminProject);setSelectedImage(null)}} className="rounded-xl border border-white/10 px-5 py-3 text-sm">Cancel</button>}</div>
           </form>
           <div className="mt-6 grid gap-3 md:grid-cols-2">
-            {projects.map(p=><div key={p.id} className="rounded-xl border border-white/10 bg-black/20 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] uppercase tracking-[0.15em] text-cyan-400">{p.category}</p><h4 className="mt-1 font-medium">{p.title}</h4></div>{p.featured && <span className="text-[10px] text-cyan-300">Featured</span>}</div><p className="mt-2 line-clamp-2 text-xs text-neutral-500">{p.description}</p><div className="mt-3 flex gap-2"><button onClick={()=>editProject(p)} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Edit</button><button onClick={()=>deleteProject(p.id)} className="rounded-lg border border-red-400/20 px-3 py-2 text-xs text-red-300">Delete</button></div></div>)}
+            {projects.map(p=><div key={p.id} className="rounded-xl border border-white/10 bg-black/20 p-4">{p.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imageUrl(p.image_url)} alt="" className="mb-3 h-28 w-full rounded-lg object-cover" />
+            ) : (
+              <div className="mb-3 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-white/10 text-xs text-neutral-600">Image nahi hai</div>
+            )}<div className="flex items-start justify-between gap-3"><div><p className="text-[10px] uppercase tracking-[0.15em] text-cyan-400">{p.category}</p><h4 className="mt-1 font-medium">{p.title}</h4></div>{p.featured && <span className="text-[10px] text-cyan-300">Featured</span>}</div><p className="mt-2 line-clamp-2 text-xs text-neutral-500">{p.description}</p><div className="mt-3 flex gap-2"><button onClick={()=>editProject(p)} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Edit</button><button onClick={()=>regenerateCover(p.id)} disabled={busy} className="rounded-lg border border-cyan-400/30 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40">Regenerate cover</button><button onClick={()=>deleteProject(p.id)} className="rounded-lg border border-red-400/20 px-3 py-2 text-xs text-red-300">Delete</button></div></div>)}
           </div>
         </section>
 

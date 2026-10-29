@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFil
 from sqlalchemy.orm import Session
 
 from .database import get_db
+from .cover_svg import AUTO_COVER_NAME, build_cover_svg
 from .models import Project, Profile, Resume, Stack, StoredFile
 from .schemas import (
     ProfileCreate,
@@ -141,6 +142,25 @@ def create_project(
     db.add(project)
     db.commit()
     db.refresh(project)
+
+    # Image nahi di toh automatic cover lag jaye (baad me admin se badal sakte ho)
+    if not project.image_url:
+        try:
+            project.image_url = save_file(
+                db,
+                build_cover_svg(
+                    project.title,
+                    project.category,
+                    project.tags,
+                ).encode("utf-8"),
+                "image/svg+xml",
+                AUTO_COVER_NAME,
+            )
+            db.commit()
+            db.refresh(project)
+        except Exception:
+            db.rollback()
+            db.refresh(project)
 
     return project
 
