@@ -19,6 +19,8 @@ import AskAI from "./components/AskAI";
 import ProfileSection from "./components/ProfileSection";
 import Hero3D from "./components/Hero3D";
 import LiveAgent from "./components/LiveAgent";
+import GithubActivity from "./components/GithubActivity";
+import RecruiterBar from "./components/RecruiterBar";
 import DemoStatus from "./components/DemoStatus";
 import ArchitectureDiagram from "./components/ArchitectureDiagram";
 import HeroTerminal from "./components/HeroTerminal";
@@ -99,7 +101,7 @@ type JDMatch = {
 const fallbackProfile: Profile = {
   id: 0,
   name: "Ishwar Dhakad",
-  headline: "Agentic AI & Python Backend Engineer",
+  headline: "GenAI & Agentic AI Developer",
   bio: "I build intelligent systems using Agentic AI, Generative AI, Python backends, LLMs, RAG and modern AI engineering tools.",
   email: EMAIL,
   availability: "Open to remote & on-site opportunities",
@@ -268,7 +270,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
   const [adminProfile, setAdminProfile] = useState<AdminProfile>({
     id: 0,
     name: "Ishwar Dhakad",
-    headline: "Agentic AI & Python Backend Engineer",
+    headline: "GenAI & Agentic AI Developer",
     bio: "",
     email: EMAIL,
     github: GITHUB_URL,
@@ -1309,31 +1311,31 @@ export default function Home() {
 
             <div>
               <p className="text-2xl font-semibold">
-                AI
+                <CountUp value={projects.filter((project) => project.live_url).length} pad={2} suffix="+" />
               </p>
 
               <p className="mt-1 text-xs text-neutral-600">
-                Engineering
+                Live deployments
               </p>
             </div>
 
             <div>
               <p className="text-2xl font-semibold">
-                24/7
+                <CountUp value={stack.length} pad={2} suffix="+" />
               </p>
 
               <p className="mt-1 text-xs text-neutral-600">
-                Learning
+                Technologies
               </p>
             </div>
 
             <div>
               <p className="text-2xl font-semibold">
-                ∞
+                Open
               </p>
 
               <p className="mt-1 text-xs text-neutral-600">
-                Curiosity
+                Internships &amp; full-time
               </p>
             </div>
 
@@ -1585,6 +1587,8 @@ export default function Home() {
         resumeUrl={resumeUrl !== "/resume.pdf" ? resumeUrl : undefined}
       />
 
+      <GithubActivity username="ishwardhakad779-a11y" />
+
       <AgentWorkflows />
 
       <LiveAgent />
@@ -1810,6 +1814,14 @@ export default function Home() {
       )}
 
       {adminOpen && <InlineAdminPanel onClose={()=>setAdminOpen(false)} />}
+
+      {!adminOpen && resumeUrl !== "/resume.pdf" && (
+        <RecruiterBar
+          resumeUrl={resumeUrl}
+          email={EMAIL}
+          linkedin={LINKEDIN_URL}
+        />
+      )}
 
       {!adminOpen && <AskAI />}
 
