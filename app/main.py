@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .agent_demo import router as agent_router
 from .ai import router as ai_router
+from .demo_status import router as status_router
 from .profile_photo import router as photo_router
 from .database import Base, engine
 from .routes import router
@@ -126,6 +127,12 @@ app.include_router(
 
 app.include_router(
     photo_router,
+    prefix="/api",
+)
+
+
+app.include_router(
+    status_router,
     prefix="/api",
 )
 

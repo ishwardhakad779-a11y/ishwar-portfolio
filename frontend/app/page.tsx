@@ -19,6 +19,9 @@ import AskAI from "./components/AskAI";
 import ProfileSection from "./components/ProfileSection";
 import Hero3D from "./components/Hero3D";
 import LiveAgent from "./components/LiveAgent";
+import DemoStatus from "./components/DemoStatus";
+import ArchitectureDiagram from "./components/ArchitectureDiagram";
+import HeroTerminal from "./components/HeroTerminal";
 import IncidentSimulator from "./components/IncidentSimulator";
 import { CountUp, MagneticEffect, ScrambleText } from "./components/MicroInteractions";
 
@@ -1531,6 +1534,20 @@ export default function Home() {
       <AgentWorkflows />
 
       <LiveAgent />
+
+      <DemoStatus />
+
+      <ArchitectureDiagram />
+
+      <HeroTerminal
+        name={profile.name}
+        headline={profile.headline}
+        bio={profile.bio}
+        availability={profile.availability}
+        projects={projects}
+        stack={stack}
+        resumeUrl={resumeUrl !== "/resume.pdf" ? resumeUrl : undefined}
+      />
 
       <IncidentSimulator />
 
