@@ -1,26 +1,22 @@
 """
-Project cover endpoints (admin only, kyunki POST hain aur main.py ka X-Admin-Key
-middleware non-GET requests ko rokta hai).
+Project cover endpoints (admin only: POST hain, main.py ka middleware key maangta hai).
 
-    POST /api/projects/{id}/cover     naya auto cover (Regenerate). Har click pe rang/pattern badalta hai.
-    POST /api/projects/covers/fill    jin projects me image nahi hai unko auto cover do
-
-Upload ki hui image ko Regenerate galti se na hata de, isliye agar project me
-upload ki hui image hai to pehle 409 aata hai, aur confirm karne par
-`{"replace_upload": true}` bhejne se hi replace hota hai.
+    POST /api/projects/{id}/cover   {"replace_upload": bool, "next_icon": bool}
+        Regenerate: rang/pattern badalta hai, icon wahi rehta hai.
+        next_icon=true: icon agla theme ho jata hai ("Change icon" button).
+        Upload ki hui image ho toh pehle 409, confirm par replace_upload=true.
+    POST /api/projects/covers/fill  {"refresh_auto": bool}
+        Image-less projects ko cover do; refresh_auto=true se purane auto covers
+        (bina icon wale) ko bhi theme icon ke saath update karta hai.
 """
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from .cover_svg import (
-    AUTO_COVER_NAME,
-    COVER_VERSION_MARK,
-    build_cover_svg,
-    read_variant,
-)
-from .database import SessionLocal, get_db
+from .cover_svg import AUTO_COVER_NAME, THEMES, read_icon, read_variant
+from .cover_theme import build_cover_bytes
+from .database import get_db
 from .models import Project, StoredFile
 from .routes import FILE_URL_PREFIX, delete_file, save_file
 
@@ -29,6 +25,11 @@ router = APIRouter(tags=["project-cover"])
 
 class CoverRequest(BaseModel):
     replace_upload: bool = False
+    next_icon: bool = False
+
+
+class FillRequest(BaseModel):
+    refresh_auto: bool = False
 
 
 def _stored(db: Session, url: str | None) -> StoredFile | None:
@@ -42,30 +43,31 @@ def _stored(db: Session, url: str | None) -> StoredFile | None:
     )
 
 
-def _is_auto_cover(stored: StoredFile | None) -> bool:
+def _is_auto(stored: StoredFile | None) -> bool:
     return bool(stored and stored.filename == AUTO_COVER_NAME)
 
 
-def _attach_cover(db: Session, project: Project, variant: int) -> None:
-    svg = build_cover_svg(
+async def _attach(
+    db: Session,
+    project: Project,
+    variant: int,
+    icon: str | None,
+) -> None:
+    svg_bytes, _ = await build_cover_bytes(
         project.title,
         project.category,
         project.tags,
+        project.description,
         variant,
+        icon,
     )
 
     delete_file(db, project.image_url)
-
-    project.image_url = save_file(
-        db,
-        svg.encode("utf-8"),
-        "image/svg+xml",
-        AUTO_COVER_NAME,
-    )
+    project.image_url = save_file(db, svg_bytes, "image/svg+xml", AUTO_COVER_NAME)
 
 
 @router.post("/projects/{project_id}/cover")
-def regenerate_cover(
+async def regenerate_cover(
     project_id: int,
     payload: CoverRequest | None = None,
     db: Session = Depends(get_db),
@@ -75,21 +77,29 @@ def regenerate_cover(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
+    payload = payload or CoverRequest()
     current = _stored(db, project.image_url)
-    replace_upload = bool(payload and payload.replace_upload)
+    auto = _is_auto(current)
 
-    # Upload ki hui image hai aur user ne abhi confirm nahi kiya
-    if project.image_url and not _is_auto_cover(current) and not replace_upload:
+    if project.image_url and not auto and not payload.replace_upload:
         raise HTTPException(
             status_code=409,
             detail="Is project me aapki upload ki hui image lagi hai.",
         )
 
-    # Pichle cover ka agla variant lo, taaki har click pe rang/pattern pakka badle
-    previous = read_variant(current.data) if _is_auto_cover(current) else None
-    variant = (previous + 1) if previous is not None else 0
+    previous_variant = read_variant(current.data) if auto else None
+    variant = (previous_variant + 1) if previous_variant is not None else 0
+    icon = read_icon(current.data) if auto else None
 
-    _attach_cover(db, project, variant)
+    if payload.next_icon:
+        if icon is None:
+            # Pehle AI se theme pata karo, phir uske agla wala lo
+            _, icon = await build_cover_bytes(
+                project.title, project.category, project.tags, project.description
+            )
+        icon = THEMES[(THEMES.index(icon) + 1) % len(THEMES)]
+
+    await _attach(db, project, variant, icon)
 
     db.commit()
     db.refresh(project)
@@ -98,50 +108,26 @@ def regenerate_cover(
 
 
 @router.post("/projects/covers/fill")
-def fill_missing_covers(db: Session = Depends(get_db)):
-    projects = db.query(Project).filter(
-        (Project.image_url.is_(None)) | (Project.image_url == "")
-    ).all()
+async def fill_covers(
+    payload: FillRequest | None = None,
+    db: Session = Depends(get_db),
+):
+    refresh = bool(payload and payload.refresh_auto)
+    changed = 0
 
-    for project in projects:
-        _attach_cover(db, project, 0)
+    for project in db.query(Project).all():
+        if not project.image_url:
+            await _attach(db, project, 0, None)
+            changed += 1
+            continue
+
+        if refresh:
+            current = _stored(db, project.image_url)
+
+            if _is_auto(current) and read_icon(current.data) is None:
+                await _attach(db, project, read_variant(current.data) or 0, None)
+                changed += 1
 
     db.commit()
 
-    return {"created": len(projects)}
-
-
-def upgrade_auto_covers() -> int:
-    """Startup pe chalta hai: purane text-only auto covers ko naye illustration wale
-    covers se badal deta hai. Variant (rang) wahi rehta hai. Upload ki hui images ko
-    nahi chhuta, aur dobara chalane pe kuch nahi badalta (marker check)."""
-    db = SessionLocal()
-
-    try:
-        upgraded = 0
-
-        for project in db.query(Project).all():
-            stored = _stored(db, project.image_url)
-
-            if not _is_auto_cover(stored):
-                continue
-
-            if COVER_VERSION_MARK in stored.data[:600]:
-                continue
-
-            variant = read_variant(stored.data) or 0
-            _attach_cover(db, project, variant)
-            upgraded += 1
-
-        db.commit()
-
-        if upgraded:
-            print(f"[covers] upgraded {upgraded} auto cover(s)", flush=True)
-
-        return upgraded
-    except Exception as error:  # noqa: BLE001
-        db.rollback()
-        print(f"[covers] upgrade skipped: {error}", flush=True)
-        return 0
-    finally:
-        db.close()
+    return {"created": changed}

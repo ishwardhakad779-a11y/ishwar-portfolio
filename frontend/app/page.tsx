@@ -24,6 +24,7 @@ import RecruiterBar from "./components/RecruiterBar";
 import DemoStatus from "./components/DemoStatus";
 import ArchitectureDiagram from "./components/ArchitectureDiagram";
 import HeroTerminal from "./components/HeroTerminal";
+import ContactSection from "./components/ContactSection";
 import IncidentSimulator from "./components/IncidentSimulator";
 import { CountUp, MagneticEffect, ScrambleText } from "./components/MicroInteractions";
 
@@ -363,7 +364,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     setSelectedImage(null);
   }
 
-  async function regenerateCover(id: number, replaceUpload = false) {
+  async function regenerateCover(id: number, replaceUpload = false, nextIcon = false) {
     let needsConfirm = "";
 
     try {
@@ -371,7 +372,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
       const response = await fetch(`${ADMIN_API}/projects/${id}/cover`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ replace_upload: replaceUpload }),
+        body: JSON.stringify({ replace_upload: replaceUpload, next_icon: nextIcon }),
       });
       const data = await response.json().catch(() => null);
 
@@ -389,14 +390,14 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
     }
 
     if (needsConfirm && window.confirm(`${needsConfirm}\n\nAuto cover se badalna hai?`)) {
-      await regenerateCover(id, true);
+      await regenerateCover(id, true, nextIcon);
     }
   }
 
   async function fillCovers() {
     try {
       setBusy(true); setError(""); setMessage("");
-      const response = await fetch(`${ADMIN_API}/projects/covers/fill`, { method: "POST" });
+      const response = await fetch(`${ADMIN_API}/projects/covers/fill`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ refresh_auto: true }) });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.detail || "Covers generate nahi hue.");
       setMessage(
@@ -597,7 +598,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
         </div>
 
         <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs uppercase tracking-[0.2em] text-cyan-400">Projects</p><h3 className="mt-2 text-xl font-semibold">{editingProjectId ? "Edit Project" : "Add Project"}</h3></div><span className="text-xs text-neutral-600">{projects.length} projects</span><button type="button" onClick={fillCovers} disabled={busy} className="rounded-lg border border-cyan-400/30 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40">Auto cover: jin me image nahi</button></div>
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs uppercase tracking-[0.2em] text-cyan-400">Projects</p><h3 className="mt-2 text-xl font-semibold">{editingProjectId ? "Edit Project" : "Add Project"}</h3></div><span className="text-xs text-neutral-600">{projects.length} projects</span><button type="button" onClick={fillCovers} disabled={busy} className="rounded-lg border border-cyan-400/30 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40">Auto cover: image nahi wale + purane update</button></div>
           <form onSubmit={saveProject} className="grid gap-4 lg:grid-cols-2">
             <input name="title" value={projectForm.title} onChange={handleProjectChange} placeholder="Project title" className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none"/>
             <select name="category" value={projectForm.category} onChange={handleProjectChange} className="rounded-xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm outline-none">{categories.slice(1).map(c=><option key={c}>{c}</option>)}</select>
@@ -616,7 +617,7 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
               <img src={imageUrl(p.image_url)} alt="" className="mb-3 h-28 w-full rounded-lg object-cover" />
             ) : (
               <div className="mb-3 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-white/10 text-xs text-neutral-600">Image nahi hai</div>
-            )}<div className="flex items-start justify-between gap-3"><div><p className="text-[10px] uppercase tracking-[0.15em] text-cyan-400">{p.category}</p><h4 className="mt-1 font-medium">{p.title}</h4></div>{p.featured && <span className="text-[10px] text-cyan-300">Featured</span>}</div><p className="mt-2 line-clamp-2 text-xs text-neutral-500">{p.description}</p><div className="mt-3 flex gap-2"><button onClick={()=>editProject(p)} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Edit</button><button onClick={()=>regenerateCover(p.id)} disabled={busy} className="rounded-lg border border-cyan-400/30 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40">Regenerate cover</button><button onClick={()=>deleteProject(p.id)} className="rounded-lg border border-red-400/20 px-3 py-2 text-xs text-red-300">Delete</button></div></div>)}
+            )}<div className="flex items-start justify-between gap-3"><div><p className="text-[10px] uppercase tracking-[0.15em] text-cyan-400">{p.category}</p><h4 className="mt-1 font-medium">{p.title}</h4></div>{p.featured && <span className="text-[10px] text-cyan-300">Featured</span>}</div><p className="mt-2 line-clamp-2 text-xs text-neutral-500">{p.description}</p><div className="mt-3 flex gap-2"><button onClick={()=>editProject(p)} className="rounded-lg border border-white/10 px-3 py-2 text-xs">Edit</button><button onClick={()=>regenerateCover(p.id)} disabled={busy} className="rounded-lg border border-cyan-400/30 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40">Regenerate cover</button><button onClick={()=>regenerateCover(p.id, false, true)} disabled={busy} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-neutral-300 disabled:opacity-40">Change icon</button><button onClick={()=>deleteProject(p.id)} className="rounded-lg border border-red-400/20 px-3 py-2 text-xs text-red-300">Delete</button></div></div>)}
           </div>
         </section>
 
@@ -1703,43 +1704,13 @@ export default function Home() {
 
           <div>
 
-            <p className="text-base leading-8 text-neutral-400">
-              {profile.bio}
-            </p>
-
-            <p className="mt-6 text-sm leading-7 text-neutral-600">
+            <p className="text-sm leading-7 text-neutral-500">
               My focus is on turning AI
               capabilities into useful
               applications with clean APIs,
               reliable backend architecture
               and intelligent agent workflows.
             </p>
-
-            {/* FIXED SOCIAL LINKS */}
-
-            <div className="mt-8 flex flex-wrap gap-3">
-
-              <a
-                href={GITHUB_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-xs text-neutral-400 transition hover:bg-white/[0.05] hover:text-white"
-              >
-                <GitHubIcon size={15} />
-                GitHub
-              </a>
-
-              <a
-                href={LINKEDIN_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-xs text-neutral-400 transition hover:bg-white/[0.05] hover:text-white"
-              >
-                <LinkedInIcon size={15} />
-                LinkedIn
-              </a>
-
-            </div>
 
           </div>
 
@@ -1751,50 +1722,13 @@ export default function Home() {
           CONTACT
       ========================= */}
 
-      <section
-        id="contact"
-        className="scroll-mt-24 border-t border-white/[0.06]"
-      >
-
-        <div className="mx-auto max-w-6xl px-5 py-28 sm:px-8">
-
-          <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.025] px-6 py-16 text-center sm:px-12">
-
-            <div className="pointer-events-none absolute left-1/2 top-0 h-56 w-56 -translate-x-1/2 rounded-full bg-cyan-500/[0.08] blur-[100px]" />
-
-            <div className="relative">
-
-              <p className="text-xs uppercase tracking-[0.22em] text-cyan-400">
-                Get in touch
-              </p>
-
-              <h2 className="mx-auto mt-4 max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
-                <ScrambleText text="Have an idea worth building?" />
-              </h2>
-
-              <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-neutral-500">
-                Let&apos;s talk about AI
-                systems, backend engineering,
-                automation or your next
-                project.
-              </p>
-
-              <a
-                href={`mailto:${EMAIL}`}
-                data-magnetic
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-black transition hover:bg-neutral-200"
-              >
-                <Mail size={16} />
-                {EMAIL}
-              </a>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
+      <ContactSection
+        email={EMAIL}
+        linkedin={LINKEDIN_URL}
+        github={GITHUB_URL}
+        availability={profile.availability}
+        resumeUrl={resumeUrl !== "/resume.pdf" ? resumeUrl : undefined}
+      />
 
       {adminLoginOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 px-5 backdrop-blur-md">
