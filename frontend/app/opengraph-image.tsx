@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 // Link preview card (LinkedIn, WhatsApp, Twitter, Slack).
 // Put this file at: frontend/app/opengraph-image.tsx
 
-export const runtime = "edge";
+
 export const alt = "Ishwar Dhakad | GenAI & Agentic AI Developer";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
