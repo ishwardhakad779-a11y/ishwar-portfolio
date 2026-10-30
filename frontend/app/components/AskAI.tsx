@@ -19,7 +19,7 @@ type JDResult = {
 };
 
 const SUGGESTIONS = [
-  "Ishwar kya build karta hai?",
+  "What does Ishwar build?",
   "Which project should I look at first?",
   "Is Ishwar open to internships?",
 ];
@@ -27,7 +27,7 @@ const SUGGESTIONS = [
 const WELCOME: Msg = {
   role: "assistant",
   content:
-    "Hi! Main Ishwar ka AI assistant hoon. Mujhse uske projects, skills ya availability ke baare mein kuch bhi pooch sakte ho.",
+    "Hi! I'm Ishwar's AI assistant. Ask me anything about his projects, skills or availability.",
 };
 
 /* =========================
@@ -62,19 +62,19 @@ async function postJSON<T>(
         /* ignore */
       }
 
-      throw new Error(detail || "Kuch gadbad ho gayi, dobara try karo.");
+      throw new Error(detail || "Something went wrong. Please try again.");
     }
 
     return (await res.json()) as T;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw new Error(
-        "Server ne jawab dene mein bahut time liya. Dobara try karo."
+        "The server took too long to respond. Please try again."
       );
     }
 
     if (error instanceof TypeError) {
-      throw new Error("Server se connect nahi ho paya. Dobara try karo.");
+      throw new Error("Could not connect to the server. Please try again.");
     }
 
     throw error;
@@ -161,7 +161,7 @@ export default function AskAI() {
       ]);
     } catch (error) {
       setChatError(
-        error instanceof Error ? error.message : "Kuch gadbad ho gayi."
+        error instanceof Error ? error.message : "Something went wrong."
       );
     } finally {
       setChatLoading(false);
@@ -179,7 +179,7 @@ export default function AskAI() {
     if (jdLoading) return;
 
     if (jd.trim().length < 40) {
-      setJdError("Poora job description paste karo (kam se kam 40 characters).");
+      setJdError("Please paste the full job description (at least 40 characters).");
       return;
     }
 
@@ -201,7 +201,7 @@ export default function AskAI() {
       window.dispatchEvent(new CustomEvent("jd-match", { detail: data }));
     } catch (error) {
       setJdError(
-        error instanceof Error ? error.message : "Kuch gadbad ho gayi."
+        error instanceof Error ? error.message : "Something went wrong."
       );
     } finally {
       setJdLoading(false);
@@ -320,8 +320,8 @@ export default function AskAI() {
                   <div className="flex items-center gap-2 text-xs text-neutral-500">
                     <Loader2 size={13} className="animate-spin" />
                     {chatSlow
-                      ? "Server jaag raha hai, 30-50 second lag sakte hain..."
-                      : "Soch raha hoon..."}
+                      ? "Server is waking up, this can take 30-50 seconds..."
+                      : "Thinking..."}
                   </div>
                 )}
 
@@ -342,7 +342,7 @@ export default function AskAI() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   maxLength={500}
-                  placeholder="Kuch bhi poocho..."
+                  placeholder="Ask me anything..."
                   className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-cyan-400/50"
                 />
                 <button
@@ -362,8 +362,7 @@ export default function AskAI() {
             <div className="flex-1 overflow-y-auto px-4 py-4">
               <form onSubmit={onJdSubmit} className="space-y-3">
                 <p className="text-xs leading-5 text-neutral-500">
-                  Job description paste karo, AI batayega Ishwar is role ke
-                  liye kitna fit hai.
+                  Paste a job description and the AI will tell you how well Ishwar fits the role.
                 </p>
 
                 <textarea
@@ -388,13 +387,12 @@ export default function AskAI() {
               </form>
 
               <p className="mt-2 text-[11px] leading-4 text-neutral-600">
-                Note: is check ki ek chhoti notification Ishwar ko mil sakti hai
-                (JD ka sirf pehla chhota hissa, koi personal detail nahi).
+                Note: Ishwar may get a short notification about this check (only the first small part of the JD, no personal details).
               </p>
 
               {jdSlow && (
                 <p className="mt-3 text-xs text-neutral-500">
-                  Server jaag raha hai, 30-50 second lag sakte hain...
+                  Server is waking up, this can take 30-50 seconds...
                 </p>
               )}
 

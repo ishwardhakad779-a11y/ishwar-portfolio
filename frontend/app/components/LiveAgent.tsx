@@ -46,7 +46,7 @@ const STEPS = [
 
 const SUGGESTIONS = [
   "Which project uses LangGraph and RAG?",
-  "Ishwar ka incident response project kya karta hai?",
+  "What does Ishwar's incident response project do?",
   "Is Ishwar open to internships?",
 ];
 
@@ -91,7 +91,7 @@ export default function LiveAgent() {
     }
 
     if (ev.type === "error") {
-      const message = ev.detail || "Kuch gadbad ho gayi, dobara try karo.";
+      const message = ev.detail || "Something went wrong. Please try again.";
       setError(message);
       setSteps((prev) =>
         prev.map((s) =>
@@ -121,7 +121,7 @@ export default function LiveAgent() {
       const label = STEPS[index]?.label ?? `Step ${index + 1}`;
       const text =
         status === "running"
-          ? `${label} chal raha hai...`
+          ? `${label} running...`
           : `${label}${ev.ms !== undefined ? ` (${ev.ms}ms)` : ""}: ${
               ev.detail ?? "done"
             }`;
@@ -169,7 +169,7 @@ export default function LiveAgent() {
           /* ignore */
         }
 
-        throw new Error(detail || "Kuch gadbad ho gayi, dobara try karo.");
+        throw new Error(detail || "Something went wrong. Please try again.");
       }
 
       setSlow(false);
@@ -217,12 +217,12 @@ export default function LiveAgent() {
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
-        setError("Server ne jawab dene mein bahut time liya. Dobara try karo.");
+        setError("The server took too long to respond. Please try again.");
       } else if (err instanceof TypeError) {
-        setError("Server se connect nahi ho paya. Dobara try karo.");
+        setError("Could not connect to the server. Please try again.");
       } else {
         setError(
-          err instanceof Error ? err.message : "Kuch gadbad ho gayi."
+          err instanceof Error ? err.message : "Something went wrong."
         );
       }
     } finally {
@@ -254,10 +254,7 @@ export default function LiveAgent() {
       </h2>
 
       <p className="mt-4 max-w-2xl text-base leading-8 text-neutral-400">
-        Ye animation nahi, asli agent hai. Sawal poochho: ye database me se
-        relevant projects dhoondta hai, Groq LLM se jawab likhta hai, aur phir
-        check karta hai ki jawab ke links portfolio me sach me hain ya nahi.
-        Har step backend se live stream hota hai.
+        This is not an animation, it is a real agent. Ask a question: it finds relevant projects in the database, writes the answer with a Groq LLM, and then checks whether the links in the answer actually exist in the portfolio. Every step is streamed live from the backend.
       </p>
 
       {/* input */}
@@ -267,7 +264,7 @@ export default function LiveAgent() {
           onChange={(e) => setQuestion(e.target.value)}
           maxLength={300}
           disabled={running}
-          placeholder="Ishwar ke baare me kuch poochho..."
+          placeholder="Ask anything about Ishwar..."
           className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-cyan-400/50 disabled:opacity-60"
         />
         <button
@@ -300,7 +297,7 @@ export default function LiveAgent() {
 
       {slow && (
         <p className="mt-4 text-xs text-neutral-500">
-          Server jaag raha hai, 30-50 second lag sakte hain...
+          Server is waking up, this can take 30-50 seconds...
         </p>
       )}
 
@@ -383,8 +380,7 @@ export default function LiveAgent() {
           <div className="mt-3 min-h-[5.5rem] space-y-1.5 rounded-xl bg-black/40 p-4 font-mono text-xs leading-5">
             {!started && (
               <p className="text-neutral-600">
-                Agent abhi idle hai. Upar se sawal poochho ya koi suggestion
-                dabao.
+                The agent is idle. Ask a question above or tap a suggestion.
               </p>
             )}
 

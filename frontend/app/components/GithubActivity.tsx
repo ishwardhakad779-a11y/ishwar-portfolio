@@ -141,7 +141,7 @@ export default function GithubActivity({ username }: { username: string }) {
           Live from GitHub
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">
-          Ye numbers GitHub se abhi fetch hue hain, hard-coded nahi hain.
+          These numbers were just fetched from GitHub. They are not hard-coded.
         </p>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_1.4fr]">

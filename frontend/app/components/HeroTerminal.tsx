@@ -120,15 +120,15 @@ export default function HeroTerminal({
         return {
           out: [
             "Available commands:",
-            "  about      ye banda kaun hai",
-            "  projects   saare projects",
-            "  open <n>   n number ka project kholo (jaise: open 1)",
+            "  about      who Ishwar is",
+            "  projects   all projects",
+            "  open <n>   open project number n (e.g. open 1)",
             "  skills     tech stack",
-            "  hire-me    availability aur contact",
+            "  hire-me    availability and contact",
             "  contact    email, GitHub, LinkedIn",
-            "  resume     resume kholo",
-            "  clear      screen saaf",
-            "  exit       terminal band",
+            "  resume     open the resume",
+            "  clear      clear the screen",
+            "  exit       close the terminal",
           ],
         };
 
@@ -146,7 +146,7 @@ export default function HeroTerminal({
       case "projects":
       case "ls":
         if (projects.length === 0) {
-          return { out: ["Abhi koi project nahi mila."] };
+          return { out: ["No projects found yet."] };
         }
         return {
           out: [
@@ -173,7 +173,7 @@ export default function HeroTerminal({
         const url = project.live_url || project.github_url;
 
         if (!url) {
-          return { out: [`${project.title}: koi link nahi laga hai.`], err: true };
+          return { out: [`${project.title}: no link available.`], err: true };
         }
 
         window.open(url, "_blank", "noopener,noreferrer");
@@ -184,7 +184,7 @@ export default function HeroTerminal({
         return {
           out: stack.length
             ? [stack.join("  ·  ")]
-            : ["Skills abhi load nahi hui."],
+            : ["Skills are not loaded yet."],
         };
 
       case "hire-me":
@@ -202,7 +202,7 @@ export default function HeroTerminal({
 
       case "resume":
         if (!resumeUrl) {
-          return { out: ["Resume abhi upload nahi hai."], err: true };
+          return { out: ["Resume is not uploaded yet."], err: true };
         }
         window.open(resumeUrl, "_blank", "noopener,noreferrer");
         return { out: ["Opening resume ..."] };

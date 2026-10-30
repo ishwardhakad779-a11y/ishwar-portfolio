@@ -31,9 +31,9 @@ function label(demo: Demo) {
     case "online":
       return demo.ms !== null ? `Awake · ${demo.ms} ms` : "Awake";
     case "waking":
-      return "Waking up… (free hosting, 30-50s lagte hain)";
+      return "Waking up… (free hosting, takes 30-50s)";
     case "paused":
-      return "Check paused (free hosting hours bachane ke liye)";
+      return "Check paused (to save free hosting hours)";
     default:
       return "Not responding";
   }
@@ -81,7 +81,7 @@ export default function DemoStatus() {
         signal: controller.signal,
       });
 
-      if (!res.ok) throw new Error("Status check nahi ho paya.");
+      if (!res.ok) throw new Error("Could not check the status.");
 
       const data = (await res.json()) as { demos: Demo[] };
       setDemos(data.demos);
@@ -96,7 +96,7 @@ export default function DemoStatus() {
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
-      setError("Status abhi load nahi ho paya. Thodi der baad refresh karo.");
+      setError("Could not load the status right now. Please refresh in a moment.");
     } finally {
       clearTimeout(hardTimeout);
       setLoading(false);
@@ -148,8 +148,8 @@ export default function DemoStatus() {
 
           <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
             {demos.length > 0
-              ? `${onlineCount} of ${demos.length} demos abhi online hain.`
-              : "Demos abhi online hain ya nahi?"}
+              ? `${onlineCount} of ${demos.length} demos are online right now.`
+              : "Are the demos online right now?"}
           </h2>
         </div>
 
@@ -165,16 +165,13 @@ export default function DemoStatus() {
       </div>
 
       <p className="mt-4 max-w-2xl text-base leading-8 text-neutral-400">
-        Ye board asli hai: mera server har demo ko sach me ping karta hai.
-        Free hosting par demos kuch der baad so jaate hain, aur ye check unhe
-        jaga bhi deta hai. Isliye &quot;Open demo&quot; dabane se pehle wait
-        kam lagta hai.
+        This board is real: my server actually pings every demo. On free hosting, demos fall asleep after a while, and this check wakes them up too, so there is less waiting after you press &quot;Open demo&quot;.
       </p>
 
       {loading && demos.length === 0 && (
         <p className="mt-8 flex items-center gap-2 text-sm text-neutral-500">
           <Loader2 size={14} className="animate-spin" />
-          Demos ko ping kar raha hu... (server so raha ho toh 30-50 second)
+          Pinging the demos... (30-50 seconds if the server is asleep)
         </p>
       )}
 
@@ -186,7 +183,7 @@ export default function DemoStatus() {
 
       {empty && !error && (
         <p className="mt-8 text-sm text-neutral-500">
-          Abhi kisi project me live demo link nahi laga hai.
+          No project has a live demo link yet.
         </p>
       )}
 

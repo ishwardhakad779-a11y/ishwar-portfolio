@@ -73,7 +73,7 @@ def _rate_limit(request: Request) -> None:
     if len(queue) >= 40:
         raise HTTPException(
             status_code=429,
-            detail="Bahut zyada requests, thodi der baad try karo.",
+            detail="Too many requests. Please try again in a few minutes.",
         )
 
     queue.append(now)

@@ -278,9 +278,7 @@ export default function IncidentSimulator() {
       </h2>
 
       <p className="mt-4 max-w-2xl text-base leading-8 text-neutral-400">
-        Ye meri Incident_AI agent ka simulation hai. Ek incident chuno, dekho agents kaise diagnose
-        karte hain, aur fix ko approve ya reject tum khud karo. Bilkul waise jaise asli agent mein
-        human-in-the-loop gate kaam karta hai.
+        This is a simulation of my Incident_AI agent. Pick an incident, watch how the agents diagnose it, and approve or reject the fix yourself, just like the human-in-the-loop gate in the real agent.
       </p>
 
       <p className="sr-only" aria-live="polite">

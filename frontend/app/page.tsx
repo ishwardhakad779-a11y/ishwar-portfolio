@@ -1126,8 +1126,8 @@ export default function Home() {
             </span>
 
             <p className="min-w-0 flex-1 text-xs text-neutral-300">
-              Portfolio is role ke hisaab se re-arrange ho gaya: relevant projects
-              aur skills upar highlight hain.
+              The portfolio has been re-arranged for this role: relevant projects and skills are highlighted at the top.
+
             </p>
 
             <button

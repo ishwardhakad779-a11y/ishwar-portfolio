@@ -786,7 +786,7 @@ async def agent_run(
             yield sse(
                 {
                     "type": "error",
-                    "detail": "Kuch gadbad ho gayi, dobara try karo.",
+                   "detail": "Something went wrong. Please try again.",
                     "t": elapsed(),
                 }
             )

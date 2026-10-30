@@ -27,101 +27,101 @@ const flows: Flow[] = [
   {
     id: "incident",
     title: "Incident Response AI",
-    summary: "SRE agent jo incident diagnose karke fix propose karta hai.",
+    summary: "An SRE agent that diagnoses incidents and proposes fixes.",
     nodes: [
       {
         label: "Incident report",
         tag: "Input",
-        caption: "Incident ya alert ka description system mein aata hai.",
+        caption: "The incident or alert description enters the system.",
       },
       {
         label: "Diagnose",
         tag: "LLM",
-        caption: "SRE agent incident padh ke root cause dhundta hai.",
+        caption: "The SRE agent reads the incident and finds the root cause.",
       },
       {
         label: "Propose fix",
         tag: "LLM",
-        caption: "Ek specific fix suggest karta hai, saath mein confidence score.",
+        caption: "Suggests a specific fix along with a confidence score.",
       },
       {
         label: "Human approval",
         tag: "Human-in-the-loop",
         caption:
-          "Insaan fix ko approve ya reject karta hai. Bina approval ke kuch execute nahi hota.",
+          "A human approves or rejects the fix. Nothing runs without approval.",
       },
       {
         label: "Execute",
         tag: "Action",
         caption:
-          "Approved fix chalta hai, aur har step audit trail mein save hota hai.",
+          "The approved fix runs, and every step is saved to the audit trail.",
       },
     ],
   },
   {
     id: "research",
     title: "AI Research Assistant",
-    summary: "Multi-agent system jo documents aur web dono se jawab banata hai.",
+    summary: "A multi-agent system that builds answers from both documents and the web.",
     nodes: [
       {
         label: "Question",
         tag: "Input",
-        caption: "User research ka sawal poochta hai.",
+        caption: "The user asks a research question.",
       },
       {
         label: "Document agent",
         tag: "RAG · ChromaDB",
-        caption: "Uploaded documents mein se relevant hissa retrieve karta hai.",
+        caption: "Retrieves the relevant parts of the uploaded documents.",
       },
       {
         label: "Web agent",
         tag: "Tavily search",
-        caption: "Web search se taaza information laata hai.",
+        caption: "Brings in fresh information from web search.",
       },
       {
         label: "Answer agent",
         tag: "LLM",
         caption:
-          "Documents aur web dono ko combine karke final answer likhta hai.",
+          "Combines documents and web results into a final answer.",
       },
     ],
   },
   {
     id: "yojana",
     title: "YojanaSaathi",
-    summary: "Hinglish agent jo sarkari yojanayein dhundne mein madad karta hai.",
+    summary: "An agent that helps people find Indian government schemes, in simple Hinglish (Hindi + English).",
     nodes: [
       {
         label: "User message",
         tag: "Input",
-        caption: "User Hinglish mein apna sawal ya situation likhta hai.",
+        caption: "The user describes their question or situation in Hinglish.",
       },
       {
         label: "Extract profile",
         tag: "LLM → JSON",
         caption:
-          "Message se umar, kaam, income, state aur gender jaisi details nikaalta hai.",
+          "Extracts details like age, occupation, income, state and gender from the message.",
       },
       {
         label: "Router",
         tag: "Conditional edge",
         caption:
-          "Decide karta hai: sirf greeting, details adhuri hain, ya seedha yojanayein dhundni hain.",
+          "Decides: just a greeting, missing details, or go straight to finding schemes.",
         side: [
-          { label: "Greet", note: "Hello par seedha reply" },
-          { label: "Ask", note: "Adhuri details poochta hai" },
+          { label: "Greet", note: "Replies directly to a hello" },
+          { label: "Ask", note: "Asks for the missing details" },
         ],
       },
       {
         label: "Retrieve",
         tag: "ChromaDB",
-        caption: "Sawal ko search query banake sabse relevant yojanayein laata hai.",
+        caption: "Turns the question into a search query and fetches the most relevant schemes.",
       },
       {
         label: "Answer",
         tag: "LLM",
         caption:
-          "Simple Hinglish mein jawab deta hai, aur batata hai kaun si yojanayein use hui.",
+          "Answers in simple Hinglish and tells which schemes were used.",
       },
     ],
   },
@@ -171,8 +171,7 @@ export default function AgentWorkflows() {
       </h2>
 
       <p className="mt-4 max-w-2xl text-base leading-8 text-neutral-400">
-        Ye flows mere LangGraph projects ke asli code se liye gaye hain. Kisi
-        step pe click karke dekho wo kya karta hai.
+        These flows are taken from the real code of my LangGraph projects. Click any step to see what it does.
       </p>
 
       {/* project tabs */}

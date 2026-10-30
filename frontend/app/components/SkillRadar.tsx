@@ -72,7 +72,7 @@ export default function SkillRadar({ matching, missing }: Props) {
       <svg
         viewBox={`0 0 ${SIZE_W} ${SIZE_H}`}
         role="img"
-        aria-label="Radar chart: job ki skills aur Ishwar ke paas kaun si hain"
+        aria-label="Radar chart: the job's skills and which ones Ishwar has"
         className="w-full"
       >
         <style>{`@keyframes radar-in{from{transform:scale(.15);opacity:0}to{transform:scale(1);opacity:1}}`}</style>
@@ -162,11 +162,11 @@ export default function SkillRadar({ matching, missing }: Props) {
       <div className="mt-1 flex items-center justify-center gap-4 text-[10px] text-neutral-500">
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-cyan-400" />
-          Ishwar ke paas hai
+          Ishwar has this
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-amber-400" />
-          Portfolio me nahi
+          Not in portfolio
         </span>
       </div>
     </div>

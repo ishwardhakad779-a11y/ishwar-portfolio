@@ -43,34 +43,34 @@ const FLOWS: Record<string, { label: string; steps: Step[] }> = {
   load: {
     label: "Page load",
     steps: [
-      { edge: "bn", text: "Browser Vercel se page maangta hai." },
-      { edge: "bn", reverse: true, text: "Next.js HTML aur JavaScript wapas bhejta hai." },
-      { edge: "ba", text: "Page ka JS seedha FastAPI se profile aur projects maangta hai." },
-      { edge: "an", text: "FastAPI Neon database se data padhta hai." },
-      { edge: "an", reverse: true, text: "Neon data wapas deta hai." },
-      { edge: "ba", reverse: true, text: "FastAPI JSON browser ko bhejta hai, aur page bhar jata hai." },
+      { edge: "bn", text: "The browser asks Vercel for the page." },
+      { edge: "bn", reverse: true, text: "Next.js sends back the HTML and JavaScript." },
+      { edge: "ba", text: "The page's JavaScript asks FastAPI directly for the profile and projects." },
+      { edge: "an", text: "FastAPI reads the data from the Neon database." },
+      { edge: "an", reverse: true, text: "Neon returns the data." },
+      { edge: "ba", reverse: true, text: "FastAPI sends JSON to the browser and the page fills in." },
     ],
   },
   ask: {
     label: "Ask AI",
     steps: [
-      { edge: "ba", text: "Tera sawal seedha FastAPI ko jata hai." },
-      { edge: "an", text: "FastAPI Neon se portfolio ke facts nikalta hai." },
-      { edge: "an", reverse: true, text: "Projects aur profile ka data wapas aata hai." },
-      { edge: "ag", text: "Facts aur sawal Groq LLM ko bheje jaate hain." },
-      { edge: "ag", reverse: true, text: "LLM sirf un facts ke basis pe jawab likhta hai." },
-      { edge: "ba", reverse: true, text: "Jawab browser me aa jata hai." },
+      { edge: "ba", text: "Your question goes straight to FastAPI." },
+      { edge: "an", text: "FastAPI pulls the portfolio facts from Neon." },
+      { edge: "an", reverse: true, text: "The projects and profile data come back." },
+      { edge: "ag", text: "The facts and your question are sent to the Groq LLM." },
+      { edge: "ag", reverse: true, text: "The LLM writes an answer using only those facts." },
+      { edge: "ba", reverse: true, text: "The answer appears in your browser." },
     ],
   },
   admin: {
     label: "Admin save",
     steps: [
-      { edge: "bn", text: "Save dabate hi request Next.js ke proxy ko jaati hai." },
-      { edge: "na", text: "Proxy server pe secret key lagata hai. Browser ko key kabhi dikhti nahi." },
-      { edge: "an", text: "FastAPI key check karke data Neon me save karta hai." },
-      { edge: "an", reverse: true, text: "Neon save hone ki confirmation deta hai." },
-      { edge: "na", reverse: true, text: "FastAPI proxy ko jawab deta hai." },
-      { edge: "bn", reverse: true, text: "Browser me 'Saved' dikh jata hai." },
+      { edge: "bn", text: "When you press Save, the request goes to the Next.js proxy." },
+      { edge: "na", text: "The proxy adds the secret key on the server. The browser never sees the key." },
+      { edge: "an", text: "FastAPI checks the key and saves the data to Neon." },
+      { edge: "an", reverse: true, text: "Neon confirms the save." },
+      { edge: "na", reverse: true, text: "FastAPI replies to the proxy." },
+      { edge: "bn", reverse: true, text: "The browser shows 'Saved'." },
     ],
   },
 };
@@ -149,8 +149,7 @@ export default function ArchitectureDiagram() {
       </h2>
 
       <p className="mt-4 max-w-2xl text-base leading-8 text-neutral-400">
-        Ye portfolio khud ek chhota production system hai. Neeche koi flow chuno
-        aur dekho ki ek request kis raaste se guzarti hai.
+        This portfolio is a small production system in itself. Pick a flow below and watch how a request travels through it.
       </p>
 
       <div className="mt-8 flex flex-wrap items-center gap-2">
