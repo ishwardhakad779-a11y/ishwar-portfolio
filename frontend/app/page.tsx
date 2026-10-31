@@ -25,7 +25,9 @@ import DemoStatus from "./components/DemoStatus";
 import ArchitectureDiagram from "./components/ArchitectureDiagram";
 import HeroTerminal from "./components/HeroTerminal";
 import ContactSection from "./components/ContactSection";
+import InsightsPanel from "./components/InsightsPanel";
 import IncidentSimulator from "./components/IncidentSimulator";
+import StudioDemos from "./components/StudioDemos";
 import { CountUp, MagneticEffect, ScrambleText } from "./components/MicroInteractions";
 
 const API =
@@ -546,6 +548,8 @@ function InlineAdminPanel({ onClose }: { onClose: () => void }) {
 
         {message && <div className="mb-4 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.06] px-4 py-3 text-sm text-emerald-300">{message}</div>}
         {error && <div className="mb-4 rounded-xl border border-red-400/20 bg-red-400/[0.06] px-4 py-3 text-sm text-red-300">{error}</div>}
+
+        <InsightsPanel adminApi={ADMIN_API} />
 
         <section className="mb-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5">
           <p className="text-xs uppercase tracking-[0.2em] text-cyan-400">Profile photo</p>
@@ -1442,6 +1446,7 @@ export default function Home() {
                     delay:
                       index * 0.05,
                   }}
+                  data-project={project.title}
                   className={`spotlight group overflow-hidden rounded-2xl border bg-white/[0.025] transition hover:border-white/[0.16] ${
                     relevantIndex(project.title) >= 0
                       ? "border-cyan-400/40 shadow-[0_0_30px_rgba(34,211,238,0.08)]"
@@ -1610,6 +1615,8 @@ export default function Home() {
 
       <IncidentSimulator />
 
+      <StudioDemos />
+
       {/* =========================
           STACK
       ========================= */}
@@ -1773,7 +1780,7 @@ export default function Home() {
             © {currentYear ?? 2026}{" "}
             {profile.name ||
               "Ishwar Dhakad"}
-            . Built with Next.js.
+            . Built with Next.js. Anonymous analytics: page views, clicks and Ask AI questions are counted. No cookies, no IP stored.
           </p>
 
           <div className="flex items-center gap-4">
