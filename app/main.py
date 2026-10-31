@@ -8,8 +8,8 @@ from fastapi.staticfiles import StaticFiles
 
 from .agent_demo import router as agent_router
 from .ai import router as ai_router
+from .insights import router as insights_router, track_dep
 from .project_cover import router as cover_router
-from .project_cover import upgrade_auto_covers
 from .demo_status import router as status_router
 from .profile_photo import router as photo_router
 from .database import Base, engine
@@ -21,9 +21,6 @@ from .routes import router
 # =========================
 
 Base.metadata.create_all(bind=engine)
-
-# Purane text-only covers ko illustration wale covers me upgrade karo (ek baar)
-upgrade_auto_covers()
 
 
 # =========================
@@ -59,7 +56,7 @@ app.mount(
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 # Ye POST routes public hain (visitor chatbot / JD match). Inka apna rate limit hai (app/ai.py).
-PUBLIC_POST_PATHS = {"/api/chat", "/api/jd-match", "/api/agent-run"}
+PUBLIC_POST_PATHS = {"/api/chat", "/api/jd-match", "/api/agent-run", "/api/track"}
 
 
 @app.middleware("http")
@@ -117,6 +114,7 @@ app.include_router(
 app.include_router(
     ai_router,
     prefix="/api",
+    dependencies=[track_dep],
 )
 
 
@@ -127,6 +125,7 @@ app.include_router(
 app.include_router(
     agent_router,
     prefix="/api",
+    dependencies=[track_dep],
 )
 
 
@@ -144,6 +143,12 @@ app.include_router(
 
 app.include_router(
     cover_router,
+    prefix="/api",
+)
+
+
+app.include_router(
+    insights_router,
     prefix="/api",
 )
 
